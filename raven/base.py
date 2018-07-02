@@ -646,8 +646,15 @@ class Client(object):
         # should this event be sampled?
         if sample_rate is None:
             sample_rate = self.sample_rate
-
-        if self._random.random() < sample_rate:
+        
+        message = data.get('sentry.interfaces.Message', {}).get('message', '')
+        ignore_message = False
+        
+        # Filter out unwanted messages here
+        if "EndpointDisabled" in message:
+            ignore_message = True
+        
+        if self._random.random() < sample_rate and not ignore_message:
             self.send(**data)
 
         self._local_state.last_event_id = data['event_id']
